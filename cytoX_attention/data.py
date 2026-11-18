@@ -39,9 +39,8 @@ def load_adata(
         X = S.values if isinstance(S, pd.DataFrame) else S
         adata = ad.AnnData(X=dense(X), obs=adata.obs.copy(), var=pd.DataFrame(index=names))
     else:
-        for k in list(adata.layers.keys()):
-            del adata.layers[k]  #train on log-normalized X only
-        adata.X = dense(adata.X)
+        #rebuild from X only --> drops counts layers (newer anndata aliases layers[None] to X, so no del loop)
+        adata = ad.AnnData(X=dense(adata.X), obs=adata.obs.copy(), var=adata.var.copy())
     return adata
 
 
@@ -67,7 +66,9 @@ def balance(adata: ad.AnnData, key: str, seed: int = 0) -> ad.AnnData:
     groups = np.unique(labels)
     n_max = max((labels == g).sum() for g in groups)
     idx = np.concatenate([rng.choice(np.nonzero(labels == g)[0], n_max) for g in groups])
-    return adata[idx].copy()
+    out = adata[idx].copy()
+    out.obs_names_make_unique()  #upsampling repeats cells --> unique names
+    return out
 
 
 def train_val_split(n: int, val_frac: float = 0.1, seed: int = 0):

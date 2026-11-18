@@ -1,5 +1,4 @@
 #building blocks for the attention VAE --> plain pytorch, no scvi / scgen imports
-from typing import Optional
 
 import torch
 from torch import nn

@@ -62,7 +62,7 @@ class AttentionVAE(nn.Module):
         return loss, rl.mean(), kld.mean()
 
     @torch.no_grad()
-    def get_latent(self, x, batch_size: int = 1024):
+    def get_latent(self, x, batch_size: int = 256):
         #inference uses the posterior mean, as in scGen
         self.eval()
         dev = next(self.parameters()).device
@@ -77,7 +77,7 @@ class AttentionVAE(nn.Module):
         return torch.cat(out)
 
     @torch.no_grad()
-    def get_attention(self, x, batch_size: int = 256):
+    def get_attention(self, x, batch_size: int = 128):
         #per-cell attention maps --> (N, layers, heads, T+1, T+1), index 0 is [CLS]
         if self.encoder_type == "mlp":
             raise ValueError("mlp encoder has no attention")
