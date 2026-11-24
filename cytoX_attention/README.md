@@ -22,7 +22,7 @@ A VAE in the style of scGen, with attention added in two places, for predicting 
 After VAE training, each training cell type `t` gets a control latent mean `m_t` and a shift `δ_{t,c}` for each cytokine. For the held-out type `k`, the query is its control latent mean (or each control cell with `--shift-query cell`). The keys are the `m_t` and the values are the `δ_{t,c}`.
 - `mean`: uniform weights. This is scGen's arithmetic.
 - `cosine`: `softmax(cos(m_k, m_t)/τ)`, with no learned weights. `τ` is chosen by leave-one-cell-type-out on the training types.
-- `learned`: `softmax(W_q[m_k ; e_c] · W_k m_t / √d)`, with a cytokine embedding `e_c`. `W_q` is initialised to zero, so before training this equals `mean`. It is trained episodically with the VAE frozen: hold out each training cell type in turn, predict its δ from the remaining types, and minimise latent MSE. `--decoded-weight > 0` adds a decoded-mean MSE term.
+- `learned`: `softmax(s · cos(W_q[m_k ; e_c], W_k m_t))`, with a cytokine embedding `e_c` and a learnable scale `s` bounded to [1, 5], so the weights cannot collapse to one-hot. `W_q` is initialised to zero, so before training this equals `mean`. Training keeps the weights with the lowest leave-one-out error (checked every 10 epochs, starting from the mean), so the result is never worse than `mean` on the training types. Shift learning rate: `--shift-lr` (default `1e-3`). It is trained episodically with the VAE frozen: hold out each training cell type in turn, predict its δ from the remaining types, and minimise latent MSE. `--decoded-weight > 0` adds a decoded-mean MSE term.
 
 The held-out type can never be a key, because its treated cells are not in training.
 
